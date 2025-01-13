@@ -2,102 +2,44 @@
  * Program IDL in camelCase format in order to be used in JS/TS.
  *
  * Note that this is only a type helper and is not the actual IDL. The original
- * IDL can be found at `target/idl/Voting_Dapp.json`.
+ * IDL can be found at `target/idl/voting_dapp.json`.
  */
 export type VotingDapp = {
   "address": "coUnmi3oBUtwtd9fjeAvSsJssXh5A5xyPbhpewyzRVF",
   "metadata": {
-    "name": "Voting_Dapp",
+    "name": "votingDapp",
     "version": "0.1.0",
     "spec": "0.1.0",
     "description": "Created with Anchor"
   },
   "instructions": [
     {
-      "name": "close",
+      "name": "initializePoll",
       "discriminator": [
-        98,
-        165,
-        201,
-        177,
-        108,
-        65,
-        206,
-        96
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "Voting_Dapp",
-          "writable": true
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "decrement",
-      "discriminator": [
-        106,
-        227,
-        168,
-        59,
-        248,
-        27,
-        150,
-        101
-      ],
-      "accounts": [
-        {
-          "name": "Voting_Dapp",
-          "writable": true
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "increment",
-      "discriminator": [
-        11,
+        193,
+        22,
+        99,
+        197,
         18,
-        104,
-        9,
-        104,
-        174,
-        59,
-        33
+        33,
+        115,
+        117
       ],
       "accounts": [
         {
-          "name": "Voting_Dapp",
-          "writable": true
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "initialize",
-      "discriminator": [
-        175,
-        175,
-        109,
-        31,
-        13,
-        152,
-        155,
-        237
-      ],
-      "accounts": [
-        {
-          "name": "payer",
+          "name": "poll",
           "writable": true,
-          "signer": true
+          "pda": {
+            "seeds": [
+              {
+                "kind": "arg",
+                "path": "pollId"
+              }
+            ]
+          }
         },
         {
-          "name": "Voting_Dapp",
+          "name": "user",
           "writable": true,
           "signer": true
         },
@@ -106,58 +48,66 @@ export type VotingDapp = {
           "address": "11111111111111111111111111111111"
         }
       ],
-      "args": []
-    },
-    {
-      "name": "set",
-      "discriminator": [
-        198,
-        51,
-        53,
-        241,
-        116,
-        29,
-        126,
-        194
-      ],
-      "accounts": [
-        {
-          "name": "Voting_Dapp",
-          "writable": true
-        }
-      ],
       "args": [
         {
-          "name": "value",
-          "type": "u8"
+          "name": "pollId",
+          "type": "u64"
+        },
+        {
+          "name": "description",
+          "type": "string"
+        },
+        {
+          "name": "pollStart",
+          "type": "u64"
+        },
+        {
+          "name": "pollEnd",
+          "type": "u64"
         }
       ]
     }
   ],
   "accounts": [
     {
-      "name": "Voting_Dapp",
+      "name": "poll",
       "discriminator": [
-        255,
-        176,
-        4,
-        245,
+        110,
+        234,
+        167,
         188,
-        253,
-        124,
-        25
+        231,
+        136,
+        153,
+        111
       ]
     }
   ],
   "types": [
     {
-      "name": "Voting_Dapp",
+      "name": "poll",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "count",
-            "type": "u8"
+            "name": "pollId",
+            "type": "u64"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "pollStart",
+            "type": "u64"
+          },
+          {
+            "name": "pollEnd",
+            "type": "u64"
+          },
+          {
+            "name": "candidateAmount",
+            "type": "u64"
           }
         ]
       }
