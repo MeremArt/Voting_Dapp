@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::state::Poll;
+use crate::state::{Poll,Voter,Candidate};
 
 
 #[derive(Accounts)]
@@ -18,4 +18,22 @@ pub struct InitializePoll<'info> {
 }
 
 
+#[derive(Accounts)]
+pub struct RegisterCandidate<'info> {
+    #[account(
+        mut,
+        seeds = [b"poll", &poll.poll_id.to_le_bytes()],
+        bump
+    )]
+    pub poll: Account<'info, Poll>,
+  
+    #[account(
+        init,
+        payer= user,
+        space = Candidate::INIT_SPACE,
+        seeds = [b"candidate", poll.key().as_ref(), &poll.candidate_amount.to_le_bytes()],
+        bump
+    )]
+    pub candidate: Account<'info, Candidate>,
 
+}
