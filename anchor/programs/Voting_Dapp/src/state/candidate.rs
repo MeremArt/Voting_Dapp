@@ -1,7 +1,10 @@
+use anchor_lang::prelude::*;
+
 #[account]
-#[derive(Default)]
+#[derive(InitSpace)]
 pub struct Candidate {
     pub poll: Pubkey,
+    #[max_len(100)]
     pub candidate_name: String,
     pub vote_count: u64,
 }

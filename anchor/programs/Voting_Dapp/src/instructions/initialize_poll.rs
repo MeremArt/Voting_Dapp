@@ -35,5 +35,34 @@ pub struct RegisterCandidate<'info> {
         bump
     )]
     pub candidate: Account<'info, Candidate>,
+    #[account(mut)]
+    pub user: Signer<'info>,
+    pub system_program: Program<'info, System>,
 
+}
+#[derive(Accounts)]
+pub struct CastVote<'info> {
+    #[account(
+        mut,
+        seeds = [b"poll", &poll.poll_id.to_le_bytes()],
+        bump
+    )]
+    pub poll: Account<'info, Poll>,
+    #[account(
+        init_if_needed,
+        payer = user,
+        space = Voter::INIT_SPACE,
+        seeds = [b"voter", poll.key().as_ref(), user.key().as_ref()],
+        bump
+    )]
+    #[account(
+        mut,
+        seeds = [b"candidate", poll.key().as_ref(), &candidate_seed()],
+        bump
+    )]
+    pub candidate: Account<'info, Candidate>,
+    pub candidate_seed: [u8; 8],
+    #[account(mut)]
+    pub user: Signer<'info>,
+    pub system_program: Program<'info, System>,
 }
