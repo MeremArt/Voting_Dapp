@@ -61,7 +61,7 @@ describe("voting_dapp", () => {
 
     provider = new BankrunProvider(context);
     // Cast the program to have the right account types
-    votingProgram = new Program(VotingDapp, votingAddress, provider);
+    votingProgram = new Program(IDL, provider);
 
     // Find Poll PDA - for initialize_poll, seeds are just the poll_id
     [pollAddress] = PublicKey.findProgramAddressSync(
@@ -194,7 +194,7 @@ describe("voting_dapp", () => {
 
       // Should not reach here
       expect.fail("Expected an error when voting twice");
-    } catch (error) {
+    } catch (error: any) {
       expect(error.toString()).to.include("AlreadyVoted");
       console.log("Double voting prevented successfully");
     }
@@ -263,12 +263,12 @@ describe("voting_dapp", () => {
     // Create provider and program for the new user
     const newUserProvider = new BankrunProvider(
       provider.context, // Use the correct context object
-      { wallet: { publicKey: newUser.publicKey, payer: newUser } }
+      new anchor.Wallet(newUser) // Wrap Keypair in NodeWallet
     );
 
     const newUserProgram = new Program<Idl>(
       IDL,
-      votingAddress,
+
       newUserProvider
     );
 
