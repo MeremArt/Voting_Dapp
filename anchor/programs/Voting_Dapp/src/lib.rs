@@ -50,11 +50,29 @@ poll.candidate_amount = poll.candidate_amount.checked_add(1)
 .ok_or(CustomError::Overflow)?;
 Ok(())
 
+}
+
+pub fn cast_vote(
+    ctx:Context<CastVote>,
+    candidate_id: u32
+) -> Result<()>{
+    let voter = &mut ctx.accounts.voter;
+    require!(!voter.has_voted, CustomError::AlreadyVoted);
+
+    voter.poll = ctx.accounts.poll.key();
+    voter.voter = ctx.accounts.user.key();
+    voter.selected_option = candidate_id;
+    voter.has_voted = true;
+
+ let candidate= &mut ctx.accounts.candidate;
+ candidate.vote_count = candidate.vote_count.checked_add(1).ok_or(CustomError::Overflow)?;
+
+ let poll =&mut ctx.accounts.poll;
+ poll.votes_cast = poll.votes_cast.checked_add(1).ok_or(CustomError::Overflow)?;
+ Ok(())
 
 
 }
-
-
 
 }
 

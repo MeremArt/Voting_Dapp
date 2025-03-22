@@ -8,6 +8,114 @@
   },
   "instructions": [
     {
+      "name": "cast_vote",
+      "discriminator": [
+        20,
+        212,
+        15,
+        189,
+        69,
+        180,
+        69,
+        151
+      ],
+      "accounts": [
+        {
+          "name": "poll",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  108,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "poll.poll_id",
+                "account": "Poll"
+              }
+            ]
+          }
+        },
+        {
+          "name": "voter",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  111,
+                  116,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "poll"
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "candidate",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  110,
+                  100,
+                  105,
+                  100,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "poll"
+              },
+              {
+                "kind": "arg",
+                "path": "candidate_seed"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "candidate_id",
+          "type": "u32"
+        }
+      ]
+    },
+    {
       "name": "initialize_poll",
       "discriminator": [
         193,
@@ -60,9 +168,105 @@
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "register_candidate",
+      "discriminator": [
+        91,
+        136,
+        96,
+        222,
+        242,
+        4,
+        160,
+        182
+      ],
+      "accounts": [
+        {
+          "name": "poll",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  108,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "poll.poll_id",
+                "account": "Poll"
+              }
+            ]
+          }
+        },
+        {
+          "name": "candidate",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  110,
+                  100,
+                  105,
+                  100,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "poll"
+              },
+              {
+                "kind": "account",
+                "path": "poll.candidate_amount",
+                "account": "Poll"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "candidate_name",
+          "type": "string"
+        }
+      ]
     }
   ],
   "accounts": [
+    {
+      "name": "Candidate",
+      "discriminator": [
+        86,
+        69,
+        250,
+        96,
+        193,
+        10,
+        222,
+        123
+      ]
+    },
     {
       "name": "Poll",
       "discriminator": [
@@ -75,9 +279,59 @@
         153,
         111
       ]
+    },
+    {
+      "name": "Voter",
+      "discriminator": [
+        241,
+        93,
+        35,
+        191,
+        254,
+        147,
+        17,
+        202
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidPollDuration",
+      "msg": "Poll duration is invalid."
+    },
+    {
+      "code": 6001,
+      "name": "AlreadyVoted",
+      "msg": "You have already voted."
+    },
+    {
+      "code": 6002,
+      "name": "Overflow",
+      "msg": "Math operation overflowed."
     }
   ],
   "types": [
+    {
+      "name": "Candidate",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "poll",
+            "type": "pubkey"
+          },
+          {
+            "name": "candidate_name",
+            "type": "string"
+          },
+          {
+            "name": "vote_count",
+            "type": "u64"
+          }
+        ]
+      }
+    },
     {
       "name": "Poll",
       "type": {
@@ -102,6 +356,34 @@
           {
             "name": "candidate_amount",
             "type": "u64"
+          },
+          {
+            "name": "votes_cast",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Voter",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "poll",
+            "type": "pubkey"
+          },
+          {
+            "name": "voter",
+            "type": "pubkey"
+          },
+          {
+            "name": "selected_option",
+            "type": "u32"
+          },
+          {
+            "name": "has_voted",
+            "type": "bool"
           }
         ]
       }
