@@ -36,5 +36,25 @@ pub mod voting_dapp {
     poll.votes_cast = 0;
     Ok(())
 }
+
+pub fn register_candidate (
+    ctx: Context<RegisterCandidate>,
+    candidate_name: String
+) -> Result<()> {
+let poll =  &mut ctx.accounts.poll;
+let candidate = &mut ctx.accounts.candidate;
+candidate.poll = poll.key();
+candidate.candidate_name = candidate_name;
+candidate.vote_count =0;
+poll.candidate_amount = poll.candidate_amount.checked_add(1)
+.ok_or(CustomError::Overflow)?;
+Ok(())
+
+
+
+}
+
+
+
 }
 
