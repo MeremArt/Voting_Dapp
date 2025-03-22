@@ -41,6 +41,7 @@ pub struct RegisterCandidate<'info> {
 
 }
 #[derive(Accounts)]
+#[instruction(candidate_seed: [u8; 8])]
 pub struct CastVote<'info> {
     #[account(
         mut,
@@ -55,14 +56,16 @@ pub struct CastVote<'info> {
         seeds = [b"voter", poll.key().as_ref(), user.key().as_ref()],
         bump
     )]
+    pub voter: Account<'info, Voter>,
     #[account(
         mut,
-        seeds = [b"candidate", poll.key().as_ref(), &candidate_seed()],
+        seeds = [b"candidate", poll.key().as_ref(), &candidate_seed],
         bump
     )]
     pub candidate: Account<'info, Candidate>,
-    pub candidate_seed: [u8; 8],
+   
     #[account(mut)]
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
+
