@@ -9,16 +9,7 @@
   "instructions": [
     {
       "name": "cast_vote",
-      "discriminator": [
-        20,
-        212,
-        15,
-        189,
-        69,
-        180,
-        69,
-        151
-      ],
+      "discriminator": [20, 212, 15, 189, 69, 180, 69, 151],
       "accounts": [
         {
           "name": "poll",
@@ -27,12 +18,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  112,
-                  111,
-                  108,
-                  108
-                ]
+                "value": [112, 111, 108, 108]
               },
               {
                 "kind": "account",
@@ -49,13 +35,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  118,
-                  111,
-                  116,
-                  101,
-                  114
-                ]
+                "value": [118, 111, 116, 101, 114]
               },
               {
                 "kind": "account",
@@ -75,17 +55,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  99,
-                  97,
-                  110,
-                  100,
-                  105,
-                  100,
-                  97,
-                  116,
-                  101
-                ]
+                "value": [99, 97, 110, 100, 105, 100, 97, 116, 101]
               },
               {
                 "kind": "account",
@@ -117,16 +87,7 @@
     },
     {
       "name": "initialize_poll",
-      "discriminator": [
-        193,
-        22,
-        99,
-        197,
-        18,
-        33,
-        115,
-        117
-      ],
+      "discriminator": [193, 22, 99, 197, 18, 33, 115, 117],
       "accounts": [
         {
           "name": "poll",
@@ -171,16 +132,7 @@
     },
     {
       "name": "register_candidate",
-      "discriminator": [
-        91,
-        136,
-        96,
-        222,
-        242,
-        4,
-        160,
-        182
-      ],
+      "discriminator": [91, 136, 96, 222, 242, 4, 160, 182],
       "accounts": [
         {
           "name": "poll",
@@ -189,12 +141,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  112,
-                  111,
-                  108,
-                  108
-                ]
+                "value": [112, 111, 108, 108]
               },
               {
                 "kind": "account",
@@ -211,17 +158,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  99,
-                  97,
-                  110,
-                  100,
-                  105,
-                  100,
-                  97,
-                  116,
-                  101
-                ]
+                "value": [99, 97, 110, 100, 105, 100, 97, 116, 101]
               },
               {
                 "kind": "account",
@@ -256,42 +193,15 @@
   "accounts": [
     {
       "name": "Candidate",
-      "discriminator": [
-        86,
-        69,
-        250,
-        96,
-        193,
-        10,
-        222,
-        123
-      ]
+      "discriminator": [86, 69, 250, 96, 193, 10, 222, 123]
     },
     {
       "name": "Poll",
-      "discriminator": [
-        110,
-        234,
-        167,
-        188,
-        231,
-        136,
-        153,
-        111
-      ]
+      "discriminator": [110, 234, 167, 188, 231, 136, 153, 111]
     },
     {
       "name": "Voter",
-      "discriminator": [
-        241,
-        93,
-        35,
-        191,
-        254,
-        147,
-        17,
-        202
-      ]
+      "discriminator": [241, 93, 35, 191, 254, 147, 17, 202]
     }
   ],
   "errors": [

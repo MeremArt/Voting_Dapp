@@ -11,7 +11,7 @@ import {
 } from "@solana/web3.js";
 import { useMemo } from "react";
 import * as anchor from "@project-serum/anchor";
-import idl from "./idl.json";
+import idl from "../../../anchor/target/idl/Voting_Dapp.json";
 import {
   Program,
   AnchorProvider,
@@ -50,7 +50,7 @@ export function useVotingDappProgram() {
 
     return convertedIdl;
   }
-  const idl_object = convertIdl(idl);
+  const idl_object = idl;
   const wallet = useWallet();
   const programId = useMemo(() => new PublicKey(idl.address), []);
   // Program ID from your IDL
@@ -93,7 +93,7 @@ export function useVotingDappProgram() {
 
 // Custom hook to create a new poll
 export function useCreatePoll() {
-  const { program } = useVotingDappProgram();
+  const { program, programId } = useVotingDappProgram();
   const { publicKey, sendTransaction } = useWallet();
   const { connection } = useConnection();
 
@@ -114,20 +114,22 @@ export function useCreatePoll() {
       }
 
       // Convert pollId to a buffer
-      const pollIdBuffer = new anchor.BN(pollId).toArrayLike(Buffer, "le", 8);
+      const pollIdBuffer = new BN(pollId).toArrayLike(Buffer, "le", 8);
 
-      // Derive the poll address
+      // Derive the poll address using POLL_SEED as well
       const [pollPDA] = PublicKey.findProgramAddressSync(
-        [pollIdBuffer],
-        program.programId
+        [POLL_SEED, pollIdBuffer],
+        programId
       );
+
+      console.log("Creating poll with address:", pollPDA.toString());
 
       const tx = await program.methods
         .initializePoll(
-          new anchor.BN(pollId),
+          new BN(pollId),
           description,
-          new anchor.BN(pollStart),
-          new anchor.BN(pollEnd)
+          new BN(pollStart),
+          new BN(pollEnd)
         )
         .accounts({
           poll: pollPDA,
