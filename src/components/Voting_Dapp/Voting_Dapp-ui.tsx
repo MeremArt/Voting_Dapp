@@ -24,12 +24,17 @@ import { ExplorerLink } from "../cluster/cluster-ui";
 
 // Component to create a new poll
 export function VotingDappCreate() {
+  const { publicKey } = useWallet();
   const [description, setDescription] = useState("");
   const [pollStart, setPollStart] = useState("");
   const [pollEnd, setPollEnd] = useState("");
   const { mutate, isPending } = useCreatePoll();
 
   const handleSubmit = (e: React.FormEvent) => {
+    if (!publicKey) {
+      alert("Please connect your wallet first!");
+      return;
+    }
     e.preventDefault();
 
     // Generate a random poll ID
