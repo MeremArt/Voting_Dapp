@@ -29,8 +29,28 @@ const CANDIDATE_SEED = Buffer.from("candidate");
 export function useVotingDappProgram() {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
-  const idl_string = JSON.stringify(idl);
-  const idl_object = JSON.parse(idl_string);
+
+  function convertIdl(rawIdl: any): any {
+    // Add required top-level fields
+    const convertedIdl = {
+      ...rawIdl,
+      version: rawIdl.metadata?.version || "0.1.0",
+      name: rawIdl.metadata?.name || "voting_dapp",
+    };
+
+    // Fix field names in account types
+    convertedIdl.accounts = convertedIdl.accounts.map((acc: any) => {
+      // Add type field with fields from corresponding type in types array
+      const accType = convertedIdl.types.find((t: any) => t.name === acc.name);
+      return {
+        ...acc,
+        type: accType?.type,
+      };
+    });
+
+    return convertedIdl;
+  }
+  const idl_object = convertIdl(idl);
   const wallet = useWallet();
   const programId = useMemo(() => new PublicKey(idl.address), []);
   // Program ID from your IDL
@@ -58,7 +78,13 @@ export function useVotingDappProgram() {
       },
       { commitment: "processed" }
     );
-
+    try {
+      return new anchor.Program(idl_object, programId, provider);
+    } catch (error) {
+      console.error("Error creating program:", error);
+      console.log("IDL:", JSON.stringify(idl_object, null, 2));
+      return null;
+    }
     return new anchor.Program(idl_object, programId, provider);
   }, [connection, idl_object, programId, publicKey, sendTransaction]);
 
