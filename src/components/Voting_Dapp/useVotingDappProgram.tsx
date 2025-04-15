@@ -2,24 +2,11 @@
 
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import {
-  PublicKey,
-  SystemProgram,
-  Transaction,
-  TransactionInstruction,
-  SYSVAR_CLOCK_PUBKEY,
-} from "@solana/web3.js";
+import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import { useMemo } from "react";
 import * as anchor from "@project-serum/anchor";
 import idl from "../../../anchor/target/idl/Voting_Dapp.json";
-import {
-  Program,
-  AnchorProvider,
-  web3,
-  utils,
-  BN,
-  setProvider,
-} from "@coral-xyz/anchor";
+import { BN } from "@coral-xyz/anchor";
 import React from "react";
 
 // Constants for PDA seeds
@@ -37,16 +24,15 @@ export function useVotingDappProgram() {
       publicKey?.toString() || "not connected"
     );
   }, [publicKey]);
-  // Enhanced conversion function to properly format the IDL for Anchor
+
+  // Conversion function to enrich the IDL by adding type definitions
   function convertIdl(rawIdl: any): any {
-    // Add required top-level fields
     const convertedIdl = {
       ...rawIdl,
       version: rawIdl.metadata?.version || "0.1.0",
       name: rawIdl.metadata?.name || "voting_dapp",
     };
 
-    // Convert account fields properly
     if (convertedIdl.accounts && convertedIdl.types) {
       convertedIdl.accounts = convertedIdl.accounts.map((acc: any) => {
         // Find the corresponding type definition
@@ -54,35 +40,29 @@ export function useVotingDappProgram() {
           (t: any) => t.name === acc.name
         );
         if (accType && accType.type && accType.type.fields) {
-          return {
-            ...acc,
-            type: accType.type,
-          };
+          return { ...acc, type: accType.type };
         }
         return acc;
       });
     }
-
     return convertedIdl;
   }
 
-  const idl_object = idl;
-  const wallet = useWallet();
   const programId = useMemo(() => new PublicKey(idl.address), []);
+  // Enrich the imported IDL for proper Anchor processing
+  const convertedIdl = useMemo(() => convertIdl(idl), []);
 
   const program = useMemo(() => {
     if (!publicKey) {
       console.log("No public key available");
       return null;
     }
-
     try {
       console.log("Creating provider with:", {
         connection: !!connection,
         publicKey: publicKey.toString(),
       });
 
-      // Create provider
       const provider = new anchor.AnchorProvider(
         connection,
         {
@@ -99,41 +79,22 @@ export function useVotingDappProgram() {
               throw err;
             }
           },
-          signAllTransactions: async (txs: Transaction[]) => {
-            return txs;
-          },
+          signAllTransactions: async (txs: Transaction[]) => txs,
         },
         { commitment: "processed" }
       );
 
-      // Instead of using convertIdl, let's directly use a minimal version of the IDL
-      // with just the required fields in the format Anchor expects
-      const minimalIdl = {
-        version: idl.metadata.version,
-        name: idl.metadata.name,
-        instructions: idl.instructions,
-        accounts: idl.accounts,
-        types: idl.types,
-        errors: idl.errors,
-      };
-
-      console.log("Creating program with minimal IDL");
-      const prog = new anchor.Program(
-        idl as unknown as anchor.Idl, // Use original IDL structure
-        programId,
-        provider
-      );
-
+      console.log("Creating program with converted IDL");
+      const prog = new anchor.Program(convertedIdl, programId, provider);
       console.log("Program created successfully");
       return prog;
     } catch (error) {
       console.error("Failed to create program:", error);
-      // Log more details about what might be wrong
       console.log("IDL structure:", Object.keys(idl));
       console.log("Program ID:", programId.toString());
       return null;
     }
-  }, [connection, programId, publicKey, sendTransaction]);
+  }, [connection, programId, publicKey, sendTransaction, convertedIdl]);
 
   return { program, programId };
 }
@@ -156,16 +117,17 @@ export function useCreatePoll() {
       pollStart: number;
       pollEnd: number;
     }) => {
-      if (!program || !publicKey) {
-        throw new Error("Program or wallet not connected");
+      if (!program) {
+        throw new Error("Program not connected");
+      }
+      if (!publicKey) {
+        throw new Error("Wallet not connected");
       }
 
-      // Convert pollId to a buffer
+      // Convert pollId to a buffer and use a constant seed plus pollId for consistency
       const pollIdBuffer = new BN(pollId).toArrayLike(Buffer, "le", 8);
-
-      // Derive the poll address using POLL_SEED as well
       const [pollPDA] = PublicKey.findProgramAddressSync(
-        [pollIdBuffer], // ✅ Matches program's seed definition
+        [POLL_SEED, pollIdBuffer],
         programId
       );
 
@@ -218,13 +180,12 @@ export function useRegisterCandidate() {
         throw new Error("Program or wallet not connected");
       }
 
-      // Fetch the poll account - use snake_case property names to match IDL
       const pollAccount = (await program.account.poll.fetch(poll)) as {
         candidate_amount: anchor.BN;
         poll_id: anchor.BN;
       };
 
-      // Derive the candidate address using the correct seed format
+      // Derive candidate PDA with constant candidate seed
       const [candidatePDA] = PublicKey.findProgramAddressSync(
         [
           CANDIDATE_SEED,
@@ -234,7 +195,7 @@ export function useRegisterCandidate() {
         program.programId
       );
 
-      // Find poll PDA using poll_id
+      // Use consistent poll derivation here as well (POLL_SEED plus poll_id)
       const pollIdBuffer = pollAccount.poll_id.toArrayLike(Buffer, "le", 8);
       const [pollPDA] = PublicKey.findProgramAddressSync(
         [POLL_SEED, pollIdBuffer],
@@ -284,30 +245,22 @@ export function useCastVote() {
         throw new Error("Program or wallet not connected");
       }
 
-      // Get the poll data to derive PDAs
       const pollAccount = (await program.account.poll.fetch(poll)) as {
         poll_id: anchor.BN;
       };
 
-      // Find poll PDA using poll_id
       const pollIdBuffer = pollAccount.poll_id.toArrayLike(Buffer, "le", 8);
       const [pollPDA] = PublicKey.findProgramAddressSync(
         [POLL_SEED, pollIdBuffer],
         program.programId
       );
 
-      // Find voter PDA
       const [voterPDA] = PublicKey.findProgramAddressSync(
         [VOTER_SEED, poll.toBuffer(), publicKey.toBuffer()],
         program.programId
       );
 
-      // Find candidate PDA - using correct format for candidate_seed (candidateId as u32)
-      const candidateSeed = new anchor.BN(candidateId).toArrayLike(
-        Buffer,
-        "le",
-        4
-      );
+      const candidateSeed = new BN(candidateId).toArrayLike(Buffer, "le", 4);
       const [candidatePDA] = PublicKey.findProgramAddressSync(
         [CANDIDATE_SEED, poll.toBuffer(), candidateSeed],
         program.programId
@@ -350,7 +303,6 @@ export function usePolls() {
 
       const pollAccounts = await program.account.poll.all();
       return pollAccounts.map((account) => {
-        // Use snake_case property names to match IDL
         const pollAccount = account.account as {
           poll_id: anchor.BN;
           poll_start: anchor.BN;
@@ -387,8 +339,6 @@ export function usePollCandidates(pollAddress: string | null) {
       }
 
       const pollPubkey = new PublicKey(pollAddress);
-
-      // Get all candidate accounts filtered by the poll
       const candidateAccounts = await program.account.candidate.all([
         {
           memcmp: {
@@ -399,7 +349,6 @@ export function usePollCandidates(pollAddress: string | null) {
       ]);
 
       return candidateAccounts.map((account) => {
-        // Use snake_case property names to match IDL
         const candidateAccount = account.account as {
           poll: PublicKey;
           candidate_name: string;
@@ -429,21 +378,15 @@ export function useHasVoted(pollAddress: string | null) {
       if (!program || !pollAddress || !publicKey) {
         return false;
       }
-
       const pollPubkey = new PublicKey(pollAddress);
-
-      // Find voter PDA
       const [voterPDA] = PublicKey.findProgramAddressSync(
         [VOTER_SEED, pollPubkey.toBuffer(), publicKey.toBuffer()],
         program.programId
       );
-
       try {
-        // Use snake_case property names to match IDL
         const voterAccount = await program.account.voter.fetch(voterPDA);
         return (voterAccount as { has_voted: boolean }).has_voted;
       } catch (error) {
-        // Account doesn't exist, user hasn't voted
         return false;
       }
     },
